@@ -1,0 +1,56 @@
+@use "../../styles/variables" as *;
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.row {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  label {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+  }
+
+  input {
+    padding: $spacing-sm;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-sm;
+  }
+}
+
+.error {
+  color: $color-error;
+  font-size: $font-size-sm;
+}
+
+.submitButton {
+  padding: $spacing-sm;
+  background: $color-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-sm;
+}
+
+.backButton {
+  padding: $spacing-sm;
+  background: transparent;
+  color: $color-text-muted;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-sm;
+}

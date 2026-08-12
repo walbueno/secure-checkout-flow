@@ -1,0 +1,60 @@
+@use "../styles/variables" as *;
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin-bottom: $spacing-md;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+  border-bottom: 1px solid $color-border;
+}
+
+.couponRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.input {
+  flex: 1;
+  padding: $spacing-sm;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+}
+
+.error {
+  color: $color-error;
+  font-size: 0.875rem;
+}
+
+.success {
+  color: $color-success;
+  font-size: 0.875rem;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.125rem;
+  margin: $spacing-md 0;
+}
+
+.continueButton {
+  width: 100%;
+  padding: $spacing-sm;
+  background: $color-primary;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

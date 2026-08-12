@@ -1,0 +1,47 @@
+@use "@/app/styles/variables" as *;
+
+.progress {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin-bottom: $spacing-lg;
+  gap: $spacing-md;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+}
+
+.active {
+  color: $color-text;
+  font-weight: 600;
+
+  .dot {
+    border-color: $color-primary;
+    background: $color-primary;
+    color: white;
+  }
+}
+
+.completed {
+  .dot {
+    border-color: $color-success;
+    background: $color-success;
+    color: white;
+  }
+}
