@@ -13,6 +13,12 @@ export function maskCPF(value: string): string {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+// Aplica máscara visual de CEP: 00000-000
+export function maskCEP(value: string): string {
+  const digits = unmask(value).slice(0, 8);
+  return digits.replace(/(\d{5})(\d)/, "$1-$2");
+}
+
 // Sanitiza texto livre contra XSS básico antes de qualquer renderização ou envio
 export function sanitizeInput(value: string): string {
   return value

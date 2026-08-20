@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { customerSchema, type CustomerData } from "@/app/lib/validation/customer-schema";
-import { maskCPF, unmask, sanitizeInput } from "@/app/lib/security/mask";
+import { maskCPF, maskCEP, unmask, sanitizeInput } from "@/app/lib/security/mask";
 import styles from "./page.module.scss";
 import { CheckoutProgress } from "@/app/components/ui/CheckoutProgress";
 import { useCsrfToken } from "@/app/lib/security/useCsrfToken";
@@ -30,6 +30,7 @@ const initialState: FormState = {
 
 export default function CustomerDataPage() {
   const router = useRouter();
+  const csrfToken = useCsrfToken();
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -77,7 +78,10 @@ export default function CustomerDataPage() {
 
     setLoading(true);
 
-    const csrfToken = useCsrfToken();
+    if (!csrfToken) {
+      setErrors({ form: "Preparando segurança. Tente novamente em instantes." });
+      return;
+    }
 
     try {
       const response = await fetch("/api/validate-customer", {
@@ -151,9 +155,9 @@ export default function CustomerDataPage() {
               id="zipCode"
               type="text"
               inputMode="numeric"
-              value={form.address.zipCode}
+              value={maskCEP(form.address.zipCode)}
               onChange={(e) => updateAddressField("zipCode", e.target.value)}
-              maxLength={8}
+              maxLength={9}
             />
             {errors["address.zipCode"] && (
               <span className={styles.error}>{errors["address.zipCode"]}</span>

@@ -13,6 +13,7 @@ const MOCK_AMOUNT = 409.7;
 
 export default function PaymentPage() {
   const router = useRouter();
+  const csrfToken = useCsrfToken();
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -43,7 +44,11 @@ export default function PaymentPage() {
 
     setLoading(true);
 
-    const csrfToken = useCsrfToken();
+    if (!csrfToken) {
+      setError("Preparando segurança. Tente novamente em instantes.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/process-payment", {

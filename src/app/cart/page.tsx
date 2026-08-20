@@ -10,6 +10,7 @@ import { useCsrfToken } from "../lib/security/useCsrfToken";
 
 export default function CartPage() {
   const router = useRouter();
+  const csrfToken = useCsrfToken();
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +32,10 @@ export default function CartPage() {
       return;
     }
 
-    const csrfToken = useCsrfToken();
+    if (!csrfToken) {
+      setError("Preparando segurança. Tente novamente em instantes.");
+      return;
+    }
 
     setLoading(true);
     try {
