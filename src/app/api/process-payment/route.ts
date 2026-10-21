@@ -6,9 +6,9 @@ import {
   CSRF_HEADER_NAME,
 } from "@/app/lib/security/csrf";
 
-// Aqui NÃO validamos o número do cartão — ele nunca deveria chegar até aqui.
-// Validamos o TOKEN gerado no client por tokenizeCard() e os últimos 4 dígitos,
-// que servem só para exibição/confirmação, nunca para processar o pagamento de fato.
+// Checkout demonstrativo: não recebe dados reais de cartão.
+// Valida apenas o formato do identificador fictício e dos quatro dígitos
+// ilustrativos. Nenhuma tokenização ou cobrança real é realizada.
 const paymentSchema = z.object({
   token: z
     .string()
