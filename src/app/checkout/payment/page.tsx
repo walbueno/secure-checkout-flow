@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.scss";
 import { CheckoutProgress } from "@/app/components/ui/CheckoutProgress";
-import { maskCardNumber, tokenizeCard, unmask, sanitizeInput } from "@/app/lib/security/mask";
+import { maskCardNumber, tokenizeCard, unmask } from "@/app/lib/security/mask";
 import { useCsrfToken } from "@/app/lib/security/useCsrfToken";
 
 // Em produção real, o valor viria do carrinho (contexto, query param, etc).
@@ -35,8 +35,6 @@ export default function PaymentPage() {
       setError("CVV inválido");
       return;
     }
-
-    const sanitizedCardName = sanitizeInput(cardName);
 
     // Tokeniza no client — a partir daqui, o número completo do cartão
     // deixa de existir em qualquer state ou variável do componente.
