@@ -12,7 +12,12 @@ const MOCK_AMOUNT = 409.7;
 
 export default function PaymentPage() {
   const router = useRouter();
-  const csrfToken = useCsrfToken();
+  const {
+    token: csrfToken,
+    loading: csrfLoading,
+    error: csrfError,
+    retry: retryCsrf,
+  } = useCsrfToken();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<{ transactionId: string; last4: string } | null>(null);
@@ -79,6 +84,27 @@ export default function PaymentPage() {
         Este checkout é uma demonstração.
         Nenhum dado de cartão é solicitado e nenhuma cobrança será realizada.
       </p>
+
+      {csrfLoading && (
+        <p role="status">
+          Preparando segurança do checkout...
+        </p>
+      )}
+
+      {csrfError && (
+        <div role="alert">
+          <p className={styles.error}>{csrfError}</p>
+
+          <button
+            type="button"
+            onClick={retryCsrf}
+            disabled={csrfLoading}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={styles.form}>
         <button
           type="button"
@@ -90,9 +116,14 @@ export default function PaymentPage() {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" disabled={loading} className={styles.submitButton}>
+        <button
+          type="submit"
+          disabled={loading || csrfLoading || !csrfToken}
+          className={styles.submitButton}
+        >
           {loading ? "Simulando..." : "Simular pagamento"}
         </button>
+
       </form>
     </main>
   );

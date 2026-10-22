@@ -10,7 +10,12 @@ import { useCsrfToken } from "../lib/security/useCsrfToken";
 
 export default function CartPage() {
   const router = useRouter();
-  const csrfToken = useCsrfToken();
+  const {
+    token: csrfToken,
+    loading: csrfLoading,
+    error: csrfError,
+    retry: retryCsrf,
+  } = useCsrfToken();
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +71,23 @@ export default function CartPage() {
     <main className={styles.container}>
       <h1>Carrinho</h1>
       <CheckoutProgress current="cart" />
+      {csrfLoading && (
+        <p role="status">Preparando segurança do checkout...</p>
+      )}
+
+      {csrfError && (
+        <div role="alert">
+          <p className={styles.error}>{csrfError}</p>
+
+          <button
+            type="button"
+            onClick={retryCsrf}
+            disabled={csrfLoading}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       <ul className={styles.itemList}>
         {mockCartItems.map((item) => (
@@ -84,7 +106,7 @@ export default function CartPage() {
           onChange={(e) => setCouponCode(e.target.value)}
           className={styles.input}
         />
-        <button onClick={handleApplyCoupon} disabled={loading}>
+        <button onClick={handleApplyCoupon} disabled={loading || csrfLoading || !csrfToken}>
           {loading ? "Validando..." : "Aplicar"}
         </button>
       </div>

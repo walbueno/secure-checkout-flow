@@ -30,7 +30,12 @@ const initialState: FormState = {
 
 export default function CustomerDataPage() {
   const router = useRouter();
-  const csrfToken = useCsrfToken();
+  const {
+    token: csrfToken,
+    loading: csrfLoading,
+    error: csrfError,
+    retry: retryCsrf,
+  } = useCsrfToken();
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -76,12 +81,14 @@ export default function CustomerDataPage() {
       return;
     }
 
-    setLoading(true);
-
     if (!csrfToken) {
-      setErrors({ form: "Preparando segurança. Tente novamente em instantes." });
+      setErrors({
+        form: "Token de segurança indisponível. Utilize a opção Tentar novamente.",
+      });
       return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch("/api/validate-customer", {
@@ -111,6 +118,25 @@ export default function CustomerDataPage() {
     <main className={styles.container}>
       <h1>Dados do cliente</h1>
       <CheckoutProgress current="customer-data" />
+      {csrfLoading && (
+        <p role="status">
+          Preparando segurança do checkout...
+        </p>
+      )}
+
+      {csrfError && (
+        <div role="alert">
+          <p className={styles.error}>{csrfError}</p>
+
+          <button
+            type="button"
+            onClick={retryCsrf}
+            disabled={csrfLoading}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>
@@ -228,9 +254,14 @@ export default function CustomerDataPage() {
 
         {errors.form && <p className={styles.error}>{errors.form}</p>}
 
-        <button type="submit" disabled={loading} className={styles.submitButton}>
+        <button
+          type="submit"
+          disabled={loading || csrfLoading || !csrfToken}
+          className={styles.submitButton}
+        >
           {loading ? "Validando..." : "Continuar para pagamento"}
         </button>
+
       </form>
     </main>
   );
