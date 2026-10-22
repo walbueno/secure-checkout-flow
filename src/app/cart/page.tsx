@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { mockCartItems } from "@/app/lib/mock-data/cart-items";
 import { couponSchema } from "@/app/lib/validation/coupon-schema";
@@ -20,6 +20,58 @@ export default function CartPage() {
   const [discount, setDiscount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+useEffect(() => {
+  if (!csrfToken) return;
+
+  const storedCode = sessionStorage.getItem("demo_checkout_coupon");
+
+  if (!storedCode) return;
+
+  const controller = new AbortController();
+
+  async function restoreCoupon() {
+    try {
+      const response = await fetch("/api/validate-coupon", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken!,
+        },
+        body: JSON.stringify({ code: storedCode }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        if (
+          (response.status === 400 || response.status === 404) &&
+          sessionStorage.getItem("demo_checkout_coupon") === storedCode
+        ) {
+          sessionStorage.removeItem("demo_checkout_coupon");
+        }
+        return;
+      }
+
+      const data = await response.json();
+
+      if (
+        !controller.signal.aborted &&
+        sessionStorage.getItem("demo_checkout_coupon") === storedCode
+      ) {
+        setCouponCode(data.code);
+        setDiscount(data.discountPercent);
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        console.error("Erro ao recuperar cupom:", error);
+      }
+    }
+  }
+
+  void restoreCoupon();
+
+  return () => controller.abort();
+}, [csrfToken]);
 
   const subtotal = mockCartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -59,7 +111,9 @@ export default function CartPage() {
         return;
       }
 
-      setDiscount(data.discountPercent);
+    sessionStorage.setItem("demo_checkout_coupon", data.code);
+    setDiscount(data.discountPercent);
+
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {
@@ -103,7 +157,11 @@ export default function CartPage() {
           type="text"
           placeholder="Código do cupom"
           value={couponCode}
-          onChange={(e) => setCouponCode(e.target.value)}
+          onChange={(e) => {
+            setCouponCode(e.target.value);
+            setDiscount(null);
+            sessionStorage.removeItem("demo_checkout_coupon");
+          }}
           className={styles.input}
         />
         <button onClick={handleApplyCoupon} disabled={loading || csrfLoading || !csrfToken}>

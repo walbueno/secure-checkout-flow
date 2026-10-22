@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.scss";
 import { CheckoutProgress } from "@/app/components/ui/CheckoutProgress";
 import { useCsrfToken } from "@/app/lib/security/useCsrfToken";
-
-// Em produção real, o valor viria do carrinho (contexto, query param, etc).
-// Aqui, fixo pra simplificar o fluxo de portfólio.
-const MOCK_AMOUNT = 409.7;
+import { calculateDemoTotals } from "@/app/lib/mock-data/demo-pricing";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -20,11 +17,23 @@ export default function PaymentPage() {
   } = useCsrfToken();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState<{ transactionId: string; last4: string } | null>(null);
+  const [success, setSuccess] = useState<{
+    transactionId: string;
+    last4: string;
+    amountCharged: number;
+  } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const couponCode = sessionStorage.getItem("demo_checkout_coupon");
+    const totals = calculateDemoTotals(couponCode);
+
+    if (!totals) {
+      setError("Cupom inválido. Volte ao carrinho e aplique novamente.");
+      return;
+    }
 
     // Identificador fictício para demonstração.
     // Não representa um cartão tokenizado por um provedor.
@@ -46,7 +55,12 @@ export default function PaymentPage() {
           "Content-Type": "application/json",
           "x-csrf-token": csrfToken ?? "",
         },
-        body: JSON.stringify({ token, last4, amount: MOCK_AMOUNT }),
+        body: JSON.stringify({
+          token,
+          last4,
+          amount: totals.totalCents / 100,
+          couponCode,
+        }),
       });
       const data = await response.json();
 
@@ -55,7 +69,13 @@ export default function PaymentPage() {
         return;
       }
 
-      setSuccess({ transactionId: data.transactionId, last4: data.cardLast4 });
+      sessionStorage.removeItem("demo_checkout_coupon");
+
+      setSuccess({
+        transactionId: data.transactionId,
+        last4: data.cardLast4,
+        amountCharged: data.amountCharged,
+      });
     } catch {
       setError("Erro de conexão. Tente novamente.");
     } finally {
@@ -69,7 +89,13 @@ export default function PaymentPage() {
         <h1>Simulação concluída</h1>
         <CheckoutProgress current="payment" />
         <p>Identificador da transação fictícia: {success.transactionId}</p>
-        <p>Final ilustrativo do cartão: {success.last4}</p>
+        <p>
+          Valor da simulação:{" "}
+          {success.amountCharged.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+        </p>
         <button onClick={() => router.push("/")} className={styles.submitButton}>
           Voltar ao início
         </button>

@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { couponSchema } from "@/app/lib/validation/coupon-schema";
 import { validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from "@/app/lib/security/csrf";
-
-// Mock de cupons válidos — em produção isso viria de um banco de dados
-const VALID_COUPONS: Record<string, number> = {
-  BEMVINDO10: 10,
-  FRETEGRATIS: 0,
-};
+import { DEMO_COUPONS } from "@/app/lib/mock-data/demo-pricing";
 
 export async function POST(request: NextRequest) {
 
@@ -36,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { code } = result.data;
-    const discount = VALID_COUPONS[code];
+    const discount = DEMO_COUPONS[code];
 
     if (discount === undefined) {
       return NextResponse.json(

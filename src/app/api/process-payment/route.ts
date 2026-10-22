@@ -6,6 +6,9 @@ import {
   CSRF_HEADER_NAME,
 } from "@/app/lib/security/csrf";
 
+import { calculateDemoTotals } from "@/app/lib/mock-data/demo-pricing";
+import { couponSchema } from "@/app/lib/validation/coupon-schema";
+
 // Checkout demonstrativo: não recebe dados reais de cartão.
 // Valida apenas o formato do identificador fictício e dos quatro dígitos
 // ilustrativos. Nenhuma tokenização ou cobrança real é realizada.
@@ -19,9 +22,8 @@ const paymentSchema = z.object({
   amount: z
     .number()
     .positive("Valor deve ser positivo"),
+  couponCode: couponSchema.shape.code.nullish(),
 });
-
-const DEMO_ORDER_AMOUNT = 409.7;
 
 export async function POST(request: NextRequest) {
 
@@ -51,8 +53,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { last4, amount } = result.data;
-    if (amount !== DEMO_ORDER_AMOUNT) {
+    const { last4, amount, couponCode } = result.data;
+
+    const totals = calculateDemoTotals(couponCode ?? null);
+
+    if (!totals) {
+      return NextResponse.json(
+        { error: "Cupom inválido" },
+        { status: 400 }
+      );
+    }
+
+    if (Math.round(amount * 100) !== totals.totalCents) {
       return NextResponse.json(
         { error: "Valor do pedido não corresponde ao esperado" },
         { status: 400 }
@@ -66,7 +78,7 @@ export async function POST(request: NextRequest) {
       success: true,
       transactionId: `txn_${crypto.randomUUID()}`,
       cardLast4: last4,
-      amountCharged: DEMO_ORDER_AMOUNT,
+      amountCharged: totals.totalCents / 100,
     });
   } catch {
     return NextResponse.json(
