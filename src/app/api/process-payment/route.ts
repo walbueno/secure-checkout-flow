@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  validateCsrfToken,
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+} from "@/app/lib/security/csrf";
 
-// Aqui NÃO validamos o número do cartão — ele nunca deveria chegar até aqui.
-// Validamos o TOKEN gerado no client por tokenizeCard() e os últimos 4 dígitos,
-// que servem só para exibição/confirmação, nunca para processar o pagamento de fato.
+import { calculateDemoTotals } from "@/app/lib/mock-data/demo-pricing";
+import { couponSchema } from "@/app/lib/validation/coupon-schema";
+
+// Checkout demonstrativo: não recebe dados reais de cartão.
+// Valida apenas o formato do identificador fictício e dos quatro dígitos
+// ilustrativos. Nenhuma tokenização ou cobrança real é realizada.
 const paymentSchema = z.object({
   token: z
     .string()
@@ -14,9 +22,22 @@ const paymentSchema = z.object({
   amount: z
     .number()
     .positive("Valor deve ser positivo"),
+  couponCode: couponSchema.shape.code.nullish(),
 });
 
 export async function POST(request: NextRequest) {
+
+  // Validamos o token CSRF enviado no cookie e no header da requisição.
+  const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value;
+  const headerToken = request.headers.get(CSRF_HEADER_NAME) ?? undefined;
+
+  if (!validateCsrfToken(cookieToken, headerToken)) {
+    return NextResponse.json(
+      { error: "Token CSRF inválido" },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await request.json();
 
@@ -32,7 +53,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { token, last4, amount } = result.data;
+    const { last4, amount, couponCode } = result.data;
+
+    const totals = calculateDemoTotals(couponCode ?? null);
+
+    if (!totals) {
+      return NextResponse.json(
+        { error: "Cupom inválido" },
+        { status: 400 }
+      );
+    }
+
+    if (Math.round(amount * 100) !== totals.totalCents) {
+      return NextResponse.json(
+        { error: "Valor do pedido não corresponde ao esperado" },
+        { status: 400 }
+      );
+    }
 
     // Em produção real, aqui aconteceria a chamada ao gateway de pagamento
     // (Stripe, PagSeguro, etc), passando o token — nunca o número do cartão.
@@ -41,7 +78,7 @@ export async function POST(request: NextRequest) {
       success: true,
       transactionId: `txn_${crypto.randomUUID()}`,
       cardLast4: last4,
-      amountCharged: amount,
+      amountCharged: totals.totalCents / 100,
     });
   } catch {
     return NextResponse.json(

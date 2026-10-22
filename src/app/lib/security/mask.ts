@@ -32,19 +32,3 @@ export function maskCardNumber(value: string): string {
   const digits = unmask(value).slice(0, 16);
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
 }
-
-// Simula tokenização client-side: nunca guarda o número completo em state
-// depois desta etapa — só o token e os últimos 4 dígitos (para exibição)
-export function tokenizeCard(cardNumber: string): {
-  token: string;
-  last4: string;
-} {
-  const digits = unmask(cardNumber);
-  const last4 = digits.slice(-4);
-
-  // Em produção real, isso seria uma chamada a um provedor (Stripe, PagSeguro, etc)
-  // que devolve um token de fato. Aqui, geramos um token fake só pra ilustrar o fluxo.
-  const token = `tok_${crypto.randomUUID()}`;
-
-  return { token, last4 };
-}

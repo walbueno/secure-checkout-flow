@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { customerSchema } from "@/app/lib/validation/customer-schema";
+import {
+  validateCsrfToken,
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+} from "@/app/lib/security/csrf";
 
 export async function POST(request: NextRequest) {
+
+  const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value;
+  const headerToken = request.headers.get(CSRF_HEADER_NAME) ?? undefined;
+
+  if (!validateCsrfToken(cookieToken, headerToken)) {
+    return NextResponse.json(
+      { error: "Token CSRF inválido" },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await request.json();
 
