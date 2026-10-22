@@ -32,7 +32,7 @@ A aplicação contempla etapas relacionadas a:
 
 * carrinho;
 * identificação do cliente;
-* dados de pagamento;
+* simulação de pagamento sem coleta de dados de cartão;
 * validação;
 * confirmação do pedido.
 
@@ -52,17 +52,33 @@ Utilização do **Zod** para validação estruturada dos dados recebidos pelos f
 
 O projeto considera a necessidade de evitar exposição desnecessária de informações sensíveis durante o fluxo.
 
-### Tokenização simulada
+### Simulação de pagamento
 
-O projeto possui uma implementação demonstrativa de tokenização.
+O checkout não solicita número do cartão, validade, CVV ou nome impresso no cartão.
 
-Essa implementação é utilizada apenas para estudo e não representa um sistema real de tokenização de cartões ou processamento de pagamentos.
+A aplicação gera um identificador fictício de pagamento e simula o processamento da transação, sem integração com gateways ou realização de cobranças reais.
+
+O final de cartão `4242`, apresentado na confirmação, é apenas ilustrativo e não corresponde a dados de cartão fornecidos pelo usuário.
 
 ### CSRF
 
-O projeto também apresenta um mecanismo demonstrativo relacionado à proteção contra CSRF.
+O projeto implementa um mecanismo demonstrativo de proteção
+contra Cross-Site Request Forgery (CSRF), utilizando tokens
+assinados com HMAC-SHA256.
 
-O objetivo é explorar o conceito dentro de um cenário controlado.
+O funcionamento inclui:
+
+- Geração de tokens com valores aleatórios criptograficamente seguros.
+- Assinatura utilizando a variável de ambiente `CSRF_SECRET`.
+- Armazenamento do token em cookie `HttpOnly` e `SameSite=Strict`.
+- Envio do token no cabeçalho `x-csrf-token` das requisições protegidas.
+- Validação da assinatura e comparação segura dos tokens no servidor.
+- Tratamento de falhas e opção de tentar novamente na interface.
+
+**Limitação conhecida:** os tokens não são vinculados a uma
+sessão autenticada. Portanto, essa implementação demonstra
+conceitos de proteção CSRF, mas não deve ser considerada uma
+solução completa para aplicações de produção.
 
 ---
 
@@ -132,6 +148,27 @@ Instale as dependências:
 ```bash
 npm install
 ```
+
+### Configuração da chave CSRF
+
+Antes de iniciar a aplicação, crie um arquivo `.env.local` na raiz do projeto.
+
+Gere uma chave aleatória de 32 bytes (64 caracteres hexadecimais) utilizando o Node.js:
+
+```powershell
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+No arquivo `.env.local`, configure a variável:
+
+```dotenv
+CSRF_SECRET=COLE_AQUI_A_CHAVE_GERADA
+```
+
+Substitua o texto de exemplo pelo valor gerado no comando anterior.
+
+**Importante:** o arquivo `.env.local` contém informações sensíveis e não deve ser enviado ao GitHub. Cada ambiente deve possuir sua própria chave secreta.
+
 
 Execute:
 
