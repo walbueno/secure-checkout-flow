@@ -217,5 +217,3 @@ Software Engineer · Web Applications · Digital Products
 
 * [GitHub](https://github.com/walbueno)
 * [LinkedIn](https://www.linkedin.com/in/walbueno)
-* [Portfolio](https://williambueno.com.br)
-* [Beez Creative](https://beezcreative.com.br)
