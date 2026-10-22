@@ -40,6 +40,32 @@ O fluxo foi estruturado para representar diferentes momentos em que dados precis
 
 ---
 
+## 🧪 Dados para demonstração
+
+Acesse a aplicação:
+https://secure-checkout-flow.vercel.app/cart
+
+O projeto é demonstrativo e não realiza pagamentos reais.
+
+### Cupom de desconto
+
+| Código | Comportamento |
+|---|---|
+| `BEMVINDO10` | Aplica 10% de desconto sobre o subtotal |
+| `FRETEGRATIS` | Cupom demonstrativo de 0% de desconto; o cálculo de frete não está implementado |
+
+### Dados do cliente
+
+Para testar o formulário, utilize informações sintéticas, evitando dados pessoais reais.
+
+O campo CPF utiliza uma validação matemática dos dígitos verificadores, sem consulta à Receita Federal. Essa validação não comprova a existência ou a titularidade de um CPF.
+
+### Pagamento
+
+A etapa de pagamento utiliza identificadores fictícios. Nenhum número de cartão, CVV ou dado de pagamento real é solicitado, e nenhuma cobrança é realizada.
+
+---
+
 ## 🔐 Segurança
 
 O projeto explora conceitos como:
